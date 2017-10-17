@@ -66,7 +66,7 @@ def write_u64(dest, q: int):
 
 # string r/w
 
-def read_string(source) -> str:
+def read_string(source) -> bytes:
     strlen, = read_u32(source)
     string = source.read(strlen)
     return string[:-1]  # remove null byte
@@ -77,14 +77,14 @@ def write_string(dest, string: bytes):
     dest.write(string + b"\x00")
 
 
-def read_string_array(source) -> Sequence[str]:
+def read_string_array(source) -> Sequence[bytes]:
     items = []
     n_items = read_u32(source)
     for _ in range(0, n_items):
         items.append(read_string(source))
     return items
 
-def write_string_array(dest, items: Sequence[str]):
+def write_string_array(dest, items: Sequence[bytes]):
     write_u32(len(items))
     for item in items:
         write_string(item)
@@ -92,7 +92,7 @@ def write_string_array(dest, items: Sequence[str]):
 
 # kvp r/w
 
-def read_kvps(source) -> Sequence[Tuple[str, str]]:
+def read_kvps(source) -> Sequence[Tuple[bytes, bytes]]:
     """Read """
     kvps = []
     n_kvps = read_u32(source)
@@ -100,7 +100,7 @@ def read_kvps(source) -> Sequence[Tuple[str, str]]:
         kvps.append((read_string(source), read_string(source)))
     return kvps
 
-def write_kvps(source, kvps: Sequence[Tuple[str, str]]):
+def write_kvps(source, kvps: Sequence[Tuple[bytes, bytes]]):
     write_u32(source, len(kvps))
     for k, v in kvps:
         write_string(source, k)
@@ -115,8 +115,8 @@ ARK_MODFILE_MAGIC = b"\x33\xFF\x22\xFF\x02\x00\x00\x00\x01"
 
 
 ArkModInfo = collections.namedtuple("ArkModInfo", (
-    "map_name",         # str
-    "map_filenames",    # list of str
+    "map_name",         # string
+    "map_filenames",    # list of strings
     "unknown_data"      # 8 bytes of stuff?
 ))
 
@@ -139,7 +139,7 @@ def ark_pack_mod_info(struct: ArkModInfo) -> bytes:
 
 
 ArkModMetaInfo = collections.namedtuple("ArkModMetaInfo", (
-    "kvps",             # list of (str, str) tuples
+    "kvps",             # list of string 2-tuples
 ))
 
 
@@ -155,12 +155,12 @@ def ark_pack_modmeta_info(struct: ArkModMetaInfo) -> bytes:
 
 
 ArkModfile = collections.namedtuple("ArkModfile", (
-    "mod_id",           # int
-    "mod_name",         # str
-    "mod_path",         # str
-    "map_filenames",    # list of str
+    "mod_id",           # integer
+    "mod_name",         # string
+    "mod_path",         # string
+    "map_filenames",    # list of strings
     "mod_magic",        # 8 bytes of stuff? seems to be the same in every mod file.
-    "metadata"          # list of (str, str) tuples
+    "metadata"          # list of string 2-tuples
 ))
 
 
