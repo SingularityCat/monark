@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 ARK *.info and *.mod formats.
 Integers are little endian unless otherwise noted.
@@ -31,7 +32,8 @@ string: mod path
 bytes 4: 32-bit unsigned integer, number of maps
 | string: map filename
 | repeats for the number of maps.
-bytes 8: specifically, these ones: 33 FF 22 FF 02 00 00 00 01 (modmeta signature?)
+bytes 8: specifically, these ones: 33 FF 22 FF 02 00 00 00 (signature?)
+byte: mod type (typically 1)
 <modmeta.info follows>
 """
 
@@ -52,7 +54,7 @@ def read_u32(source) -> int:
 
 
 def read_u64(source) -> int:
-    q, = struct.unpack("<Q", source.read(4))
+    q, = struct.unpack("<Q", source.read(8))
     return q
 
 
@@ -67,7 +69,7 @@ def write_u64(dest, q: int):
 # string r/w
 
 def read_string(source) -> bytes:
-    strlen, = read_u32(source)
+    strlen = read_u32(source)
     string = source.read(strlen)
     return string[:-1]  # remove null byte
 
@@ -110,7 +112,7 @@ def write_kvps(source, kvps: Sequence[Tuple[bytes, bytes]]):
 # specific file parsers
 # ---------------------
 
-ARK_MODFILE_MAGIC = b"\x33\xFF\x22\xFF\x02\x00\x00\x00\x01"
+ARK_MODFILE_MAGIC = b"\x33\xFF\x22\xFF\x02\x00\x00\x00"
 
 
 
@@ -160,6 +162,7 @@ ArkModfile = collections.namedtuple("ArkModfile", (
     "mod_path",         # string
     "map_filenames",    # list of strings
     "mod_magic",        # 8 bytes of stuff? seems to be the same in every mod file.
+    "mod_type",         # integer
     "metadata"          # list of string 2-tuples
 ))
 
@@ -172,6 +175,7 @@ def ark_unpack_modfile(data: bytes) -> ArkModfile:
         read_string(source),
         read_string_array(source),
         source.read(8),
+        source.read(1)[0]
         read_kvps(source)
     )
 
@@ -200,12 +204,21 @@ def ark_gen_modfile(modid: Union[int, str], modinfo: bytes, modmetainfo: bytes=N
     else:
         meta_kvps = DEFAULT_MOD_METADATA
 
+    for k, v in meta_kvps:
+        if k == b"ModType":
+            mod_type = int(v)
+            break
+    else:
+        mod_type = 1
+        meta_kvps.insert((b"ModType", b"1"), 0)
+
     amf = ArkModfile(
         int(modid),
         mi.map_name,
         mod_path_tpl.format(modid=modid).encode("utf8"),
         mi.map_filenames,
         ARK_MODFILE_MAGIC,
+        mod_type,
         meta_kvps
     )
 
