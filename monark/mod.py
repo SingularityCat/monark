@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 """
-ARK *.info and *.mod formats.
+ARK *.info and *.mod formats. (and some RE notes)
 Integers are little endian unless otherwise noted.
 
 
 string: Simple lenth-prefixed string used in ARK's things.
-  bytes        4: 32-bit unsigned integer, representing string length.
+  bytes 4: 32-bit unsigned integer, representing string length.
   | byte: part of the null terminated string.
   | repeats for the length of the string
 
@@ -15,7 +15,12 @@ string: map name
 bytes 4: 32-bit integer number of map filenames
 | string: map filename
 | repeats for the number of maps.
-bytes        8: Stuff? Not sure...
+bytes 8: Stuff? Not sure...
+ * 6: Stuff? Not sure...
+ * 2: Seems to be a version indicator of some kind, d*08.
+      d508 on the newest stuff
+      d408 on fairly recent stuff
+      d208 on older stuff.
 
 
 ARK modmeta.info format: Seems to be a binary KVP format
@@ -33,6 +38,7 @@ bytes 4: 32-bit unsigned integer, number of maps
 | string: map filename
 | repeats for the number of maps.
 bytes 8: specifically, these ones: 33 FF 22 FF 02 00 00 00 (signature?)
+ * Last one is possibly a 32-bit number with a value of 2.
 byte: mod type (typically 1)
 <modmeta.info follows>
 """
