@@ -11,7 +11,7 @@ string: Simple lenth-prefixed string used in ARK's things.
 
 
 ARK mod.info file format:
-string: map name
+string: mod name
 bytes 4: 32-bit integer number of map filenames
 | string: map filename
 | repeats for the number of maps.
@@ -92,6 +92,7 @@ def read_string_array(source) -> Sequence[bytes]:
         items.append(read_string(source))
     return items
 
+
 def write_string_array(dest, items: Sequence[bytes]):
     write_u32(len(items))
     for item in items:
@@ -108,6 +109,7 @@ def read_kvps(source) -> Sequence[Tuple[bytes, bytes]]:
         kvps.append((read_string(source), read_string(source)))
     return kvps
 
+
 def write_kvps(source, kvps: Sequence[Tuple[bytes, bytes]]):
     write_u32(source, len(kvps))
     for k, v in kvps:
@@ -123,7 +125,7 @@ ARK_MODFILE_MAGIC = b"\x33\xFF\x22\xFF\x02\x00\x00\x00"
 
 
 ArkModInfo = collections.namedtuple("ArkModInfo", (
-    "map_name",         # string
+    "mod_name",         # string
     "map_filenames",    # list of strings
     "unknown_data"      # 8 bytes of stuff?
 ))
@@ -181,7 +183,7 @@ def ark_unpack_modfile(data: bytes) -> ArkModfile:
         read_string(source),
         read_string_array(source),
         source.read(8),
-        source.read(1)[0]
+        source.read(1)[0],
         read_kvps(source)
     )
 
@@ -197,11 +199,15 @@ def ark_pack_modfile(struct: ArkModfile) -> bytes:
     return dest.getvalue()
 
 
-DEFAULT_MOD_PATH_TPL = "../../../ShooterGame/Content/Mods/{modid}"
+MOD_LOCATION = "ShooterGame/Content/Mods"
+DEFAULT_MOD_PATH_TPL = "../../../" + MOD_LOCATION + "/{modid}"
 DEFAULT_MOD_METADATA = [(b"ModType", b"1")]
 
 
-def ark_gen_modfile(modid: Union[int, str], modinfo: bytes, modmetainfo: bytes=None, mod_path_tpl: str=DEFAULT_MOD_PATH_TPL) -> bytes:
+def ark_gen_modfile(modid: Union[int, str],
+                    modinfo: bytes,
+                    modmetainfo: bytes=None,
+                    mod_path_tpl: str=DEFAULT_MOD_PATH_TPL) -> bytes:
 
     mi = ark_unpack_mod_info(modinfo)
     if modmetainfo is not None:
@@ -220,7 +226,7 @@ def ark_gen_modfile(modid: Union[int, str], modinfo: bytes, modmetainfo: bytes=N
 
     amf = ArkModfile(
         int(modid),
-        mi.map_name,
+        mi.mod_name,
         mod_path_tpl.format(modid=modid).encode("utf8"),
         mi.map_filenames,
         ARK_MODFILE_MAGIC,
