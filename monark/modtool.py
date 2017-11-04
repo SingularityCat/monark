@@ -68,10 +68,12 @@ def rm(filep, verbose=False):
 def recrm(direc, verbose=False):
     for dirpath, dirnames, filenames in os.walk(direc, topdown=False, followlinks=False):
         for dirname in dirnames:
+            dirname = join(dirpath, dirname)
             if verbose:
                 print("removing '%s'" % filename)
             os.rmdir(dirname)
         for filename in filenames:
+            filename = join(dirpath, filename)
             if verbose:
                 print("removing '%s'" % filename)
             os.unlink(filename)
