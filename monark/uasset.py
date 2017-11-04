@@ -36,7 +36,7 @@ class InconsistencyError(UassetError):
 
 
 class DecompressionError(UassetError):
-    """Indicates an error encountered while  decompressing"""
+    """Indicates an error encountered while decompressing"""
 
 
 UNREAL_MAGIC = b"\xc1\x83\x2a\x9e"  # 0x9e2a83c1 LE
@@ -80,7 +80,7 @@ def decompress(source, dest):
 
     for chunk_compressed_size, chunk_uncompressed_size in chunk_headers:
         compressed_chunk = source.read(chunk_compressed_size)
-        if len(chunk) != chunk_compressed_size:
+        if len(compressed_chunk) != chunk_compressed_size:
             raise DecompressionError(
                 "truncated chunk"
             )

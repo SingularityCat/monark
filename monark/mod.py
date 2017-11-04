@@ -54,6 +54,11 @@ from typing import Tuple, Union, Sequence, Mapping
 
 # integer r/w
 
+def read_u8(source) -> int:
+    b, = struct.unpack("<B", source.read(1))
+    return b
+
+
 def read_u32(source) -> int:
     d, = struct.unpack("<L", source.read(4))
     return d
@@ -62,6 +67,10 @@ def read_u32(source) -> int:
 def read_u64(source) -> int:
     q, = struct.unpack("<Q", source.read(8))
     return q
+
+
+def write_u8(dest, b: int):
+    dest.write(struct.pack("<B", b))
 
 
 def write_u32(dest, d: int):
@@ -94,9 +103,9 @@ def read_string_array(source) -> Sequence[bytes]:
 
 
 def write_string_array(dest, items: Sequence[bytes]):
-    write_u32(len(items))
+    write_u32(dest, len(items))
     for item in items:
-        write_string(item)
+        write_string(dest, item)
 
 
 # kvp r/w
@@ -110,11 +119,11 @@ def read_kvps(source) -> Sequence[Tuple[bytes, bytes]]:
     return kvps
 
 
-def write_kvps(source, kvps: Sequence[Tuple[bytes, bytes]]):
-    write_u32(source, len(kvps))
+def write_kvps(dest, kvps: Sequence[Tuple[bytes, bytes]]):
+    write_u32(dest, len(kvps))
     for k, v in kvps:
-        write_string(source, k)
-        write_string(source, v)
+        write_string(dest, k)
+        write_string(dest, v)
 
 
 # specific file parsers
@@ -183,19 +192,20 @@ def ark_unpack_modfile(data: bytes) -> ArkModfile:
         read_string(source),
         read_string_array(source),
         source.read(8),
-        source.read(1)[0],
+        read_u8(source),
         read_kvps(source)
     )
 
 
 def ark_pack_modfile(struct: ArkModfile) -> bytes:
     dest = io.BytesIO()
-    write_u64(struct[0])
-    write_string(struct[1])
-    write_string(struct[2])
-    write_string_array(struct[3])
+    write_u64(dest, struct[0])
+    write_string(dest, struct[1])
+    write_string(dest, struct[2])
+    write_string_array(dest, struct[3])
     dest.write(struct[4])
-    write_kvps(struct[5])
+    write_u8(dest, struct[5])
+    write_kvps(dest, struct[6])
     return dest.getvalue()
 
 

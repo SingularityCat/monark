@@ -113,9 +113,8 @@ def do_mod_install(modid: str, mod_storage_dir: str, mod_platform: str):
     install_path = join(mod.MOD_LOCATION, modid)
 
     if exists(install_path + ".mod"):
-        if not replace:
-            print("Mod {0} already installed.".format(modid))
-            return
+        print("mod {0} already installed.".format(modid))
+        return
 
     os.mkdir(install_path)
 
@@ -150,20 +149,20 @@ def do_mod_install(modid: str, mod_storage_dir: str, mod_platform: str):
     else:
         mmi = None
 
-    mf = ark_gen_modfile(modid, mi, mmi)
+    mf = mod.ark_gen_modfile(modid, mi, mmi)
     with open(install_path + ".mod", "wb") as modf:
         modf.write(mf)
-    print("Installed {0}".format(modid))
+    print("installed {0}".format(modid))
 
 
 def mod_install(args):
     if len(args.modid) == 0:
-        print("No modids specified!")
+        print("no modids specified!")
         return 1
 
     for modid in args.modid:
         if modid in OVERRIDE_MODIDS:
-            print("Ignoring special modid %s" % modid)
+            print("ignoring special modid %s" % modid)
             continue
         do_mod_install(modid, args.mod_storage_dir, args.mod_platform)
 
@@ -180,12 +179,12 @@ def do_mod_remove(modid: str):
 
 def mod_remove(args):
     if len(args.modid) == 0:
-        print("No modids specified!")
+        print("no modids specified!")
         return 1
 
     for modid in args.modid:
         if modid in OVERRIDE_MODIDS:
-            print("Ignoring special modid %s" % modid)
+            print("ignoring special modid %s" % modid)
             continue
         do_mod_remove(modid)
 
@@ -194,20 +193,29 @@ def mod_remove(args):
 
 # Mod upgrading ##############################################################
 
+def mod_chsuffix(modid: str, cursfx: str="", tarsfx: str=""):
+    with ctxchdir(mod.MOD_LOCATION):
+        if exists(modid + ".mod" + cursfx):
+            os.rename(modid + ".mod" + cursfx, modid + ".mod" + tarsfx)
+        os.rename(modid + cursfx, modid + tarsfx)
+
 def do_mod_upgrade(modid: str, mod_storage_dir: str, mod_platform: str):
-    pass
+    print("renaming old mod files...")
+    mod_chsuffix(modid, tarsfx=".bak")
+    print("installing mod...")
+    do_mod_install(modid, mod_storage_dir, mod_platform)
 
 
 def mod_upgrade(args):
     if len(args.modid) == 0:
-        print("No modids specified!")
+        print("no modids specified!")
         return 1
 
     for modid in args.modid:
         if modid in OVERRIDE_MODIDS:
-            print("Ignoring special modid %s" % modid)
+            print("ignoring special modid %s" % modid)
             continue
-        do_mod_upgrade(modid)
+        do_mod_upgrade(modid, args.mod_storage_dir, args.mod_platform)
 
     return 0
 
