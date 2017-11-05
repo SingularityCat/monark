@@ -3,6 +3,7 @@ import sys
 import argparse
 
 from . import modtool
+from . import uassetztool
 
 
     
@@ -18,6 +19,8 @@ def main():
     spo = parser.add_subparsers()
     modp = spo.add_parser("mod")
     modtool.tool_argparse(modp)
+    uztp = spo.add_parser("uassetz")
+    uassetztool.tool_argparse(uztp)
 
     args = parser.parse_args()
     return args.func(args)

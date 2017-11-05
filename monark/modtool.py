@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from typing import Tuple, List
 
 from . import mod
-from . import uasset
+from . import uassetz
 
 
 MOD_APPID = "346110"
@@ -134,7 +134,7 @@ def do_mod_install(modid: str, mod_storage_dir: str, mod_platform: str):
             dstpath = join(idir_path, filename[:slcidx])
             with open(srcpath, "rb") as src, open(dstpath, "wb") as dst:
                 if filename.endswith(".uasset.z"):
-                    uasset.decompress(src, dst)
+                    uassetz.decompress(src, dst)
                 else:
                     dst.write(src.read())
 
